@@ -1,0 +1,25 @@
+node_modules/
+.env
+*.log
+.DS_Store
+.vscode/
+dist/
+build/
+
+# Large video files (use Git LFS or host separately)
+public/assets/videos/*.mp4
+public/assets/videos/*.webm
+public/assets/videos/*.mov
+ui_components/videos/*.mp4
+ui_components/videos/*.webm
+ui_components/videos/*.mov
+
+# Large files and archives
+*.zip
+ui_components/Font/*.zip
+ui_components/*.pdf
+ui_components/Backgrounds/*.png
+TODO.pdf
+
+# Upload folder for backend
+uploads/

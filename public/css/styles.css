@@ -513,7 +513,7 @@ body {
 }
 
 /* ============================================
-   COVERFLOW VIDEO SHOWCASE SECTION
+   VIDEO SECTION - SIMPLE CLICK NAVIGATION
    ============================================ */
 .video-section {
     padding: var(--spacing-2xl) 0;
@@ -523,24 +523,32 @@ body {
 
 .video-showcase {
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: var(--spacing-md);
     position: relative;
-    padding: var(--spacing-xl) 0;
+    padding: var(--spacing-xl) var(--spacing-md);
 }
 
-/* Navigation Arrows */
-.video-nav {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 100;
+/* Video Carousel Container */
+.video-carousel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-lg);
+    width: 100%;
+    max-width: 1000px;
+}
+
+/* Navigation Buttons */
+.video-nav-btn {
+    flex-shrink: 0;
+    width: 56px;
+    height: 56px;
     background: rgba(255, 255, 255, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 50%;
-    width: 56px;
-    height: 56px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -550,344 +558,68 @@ body {
     -webkit-backdrop-filter: blur(15px);
 }
 
-.video-nav:hover {
+.video-nav-btn:hover:not(:disabled) {
     background: rgba(255, 255, 255, 0.15);
     border-color: var(--accent-magenta);
-    transform: translateY(-50%) scale(1.1);
+    transform: scale(1.1);
     box-shadow: 0 0 30px rgba(217, 70, 239, 0.4);
 }
 
-.video-nav svg {
+.video-nav-btn:disabled {
+    cursor: not-allowed;
+}
+
+.video-nav-btn svg {
     width: 28px;
     height: 28px;
     color: var(--text-primary);
     transition: transform 0.3s ease;
 }
 
-.video-nav:hover svg {
+.video-nav-btn:hover:not(:disabled) svg {
     transform: scale(1.1);
 }
 
-.video-nav-prev {
-    left: 20px;
-}
-
-.video-nav-next {
-    right: 20px;
-}
-
-/* Coverflow Container */
-.coverflow-container {
+/* Video Container */
+.video-container {
+    flex: 1;
+    max-width: 800px;
     width: 100%;
-    max-width: 100vw;
-    perspective: 1500px;
-    perspective-origin: center center;
-    overflow: hidden;
-    padding: 60px 0;
 }
 
-.coverflow-track {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 30px;
-    transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
-    transform-style: preserve-3d;
-    will-change: transform;
-    padding-left: calc(50vw - 340px);
-    padding-right: calc(50vw - 340px);
-}
-
-/* Video Card */
-.video-card {
-    flex: 0 0 auto;
-    width: 680px;
-    aspect-ratio: 16 / 9;
+.video-player-wrapper {
     position: relative;
+    width: 100%;
+    padding-bottom: 56.25%; /* 16:9 aspect ratio */
+    background: #000;
     border-radius: var(--radius-lg);
     overflow: hidden;
-    cursor: pointer;
-    transform-style: preserve-3d;
-    transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
-    background: rgba(0, 0, 0, 0.9);
-    border: 2px solid rgba(255, 255, 255, 0.1);
-}
-
-/* Non-active cards - smaller and blurred */
-.video-card:not(.active) {
-    transform: scale(0.75) translateZ(-100px);
-    filter: blur(4px) brightness(0.6);
-    opacity: 0.7;
-    z-index: 1;
-}
-
-/* Center card - active, large, clear */
-.video-card.active {
-    transform: scale(1.1) translateZ(100px);
-    filter: none;
-    opacity: 1;
-    z-index: 10;
-    border-color: var(--accent-magenta);
+    border: 2px solid var(--accent-magenta);
     box-shadow: 
         0 30px 80px rgba(0, 0, 0, 0.7),
-        0 0 60px rgba(217, 70, 239, 0.3),
-        inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+        0 0 60px rgba(217, 70, 239, 0.3);
 }
 
-.video-card.active::before {
-    content: '';
-    position: absolute;
-    inset: -2px;
-    background: linear-gradient(135deg, var(--accent-purple), var(--accent-magenta), var(--accent-purple));
-    border-radius: var(--radius-lg);
-    z-index: -1;
-    opacity: 0.5;
-    animation: glow-pulse 2s ease-in-out infinite;
-}
-
-@keyframes glow-pulse {
-    0%, 100% { opacity: 0.3; }
-    50% { opacity: 0.6; }
-}
-
-/* Video element inside card */
-.video-card video {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    background: #000;
-}
-
-/* YouTube iframe container */
-.video-card .video-iframe-container {
-    width: 100%;
-    height: 100%;
-    position: relative;
-    background: #000;
-}
-
-.video-card .video-iframe-container iframe {
-    width: 100%;
-    height: 100%;
+.video-iframe {
     position: absolute;
     top: 0;
     left: 0;
-}
-
-/* Thumbnail fallback */
-.video-card .card-thumbnail {
     width: 100%;
     height: 100%;
-    object-fit: cover;
-    position: absolute;
-    top: 0;
-    left: 0;
-    z-index: 1;
-    transition: opacity 0.3s ease;
-}
-
-.video-card.playing .card-thumbnail {
-    opacity: 0;
-    pointer-events: none;
-}
-
-/* Play overlay */
-.video-card .card-play-overlay {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 80px;
-    height: 80px;
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 5;
-    opacity: 0;
-    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-}
-
-.video-card.active .card-play-overlay {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
-}
-
-.video-card.active:hover .card-play-overlay {
-    transform: translate(-50%, -50%) scale(1.1);
-    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.6);
-}
-
-.video-card.playing .card-play-overlay {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0.8);
-    pointer-events: none;
-}
-
-.card-play-overlay svg {
-    width: 36px;
-    height: 36px;
-    color: #0a0a0a;
-    margin-left: 4px;
-}
-
-/* Video Controls Overlay */
-.video-controls-overlay {
-    position: absolute;
-    bottom: 50px;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px 20px;
-    background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border-radius: 50px;
-    z-index: 15;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s ease, transform 0.3s ease;
-    transform: translateX(-50%) translateY(20px);
-}
-
-/* Only show controls when hovering on active video */
-.video-card.active:hover .video-controls-overlay {
-    opacity: 1;
-    pointer-events: auto;
-    transform: translateX(-50%) translateY(0);
-}
-
-.video-control-btn {
-    width: 44px;
-    height: 44px;
     border: none;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 50%;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
 }
 
-.video-control-btn:hover {
-    background: rgba(255, 255, 255, 0.25);
-    transform: scale(1.1);
-}
-
-.video-control-btn svg {
-    width: 24px;
-    height: 24px;
-    color: white;
-}
-
-.video-control-btn.play-pause-btn {
-    width: 52px;
-    height: 52px;
-    background: var(--accent-magenta);
-}
-
-.video-control-btn.play-pause-btn:hover {
-    background: var(--accent-purple);
-    box-shadow: 0 0 20px rgba(217, 70, 239, 0.5);
-}
-
-.video-control-btn.play-pause-btn svg {
-    width: 28px;
-    height: 28px;
-}
-
-/* Video Progress Bar */
-.video-progress-bar {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: rgba(255, 255, 255, 0.2);
-    cursor: pointer;
-    z-index: 15;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s ease, height 0.2s ease;
-}
-
-.video-card.active:hover .video-progress-bar {
-    opacity: 1;
-    pointer-events: auto;
-    height: 6px;
-}
-
-.video-progress-filled {
-    height: 100%;
-    background: linear-gradient(90deg, var(--accent-purple), var(--accent-magenta));
-    border-radius: 0 3px 3px 0;
-    width: 0%;
-    transition: width 0.1s linear;
-}
-
-/* Video title overlay */
-.video-card .card-title {
-    position: absolute;
-    bottom: 10px;
-    left: 0;
-    right: 0;
-    padding: var(--spacing-sm) var(--spacing-md);
-    padding-bottom: var(--spacing-xl);
-    background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+/* Video Counter */
+.video-counter {
     font-family: 'Cairo', sans-serif;
-    font-size: 1.1rem;
-    font-weight: 500;
-    color: var(--text-primary);
-    opacity: 0;
-    transform: translateY(10px);
-    transition: all 0.4s ease;
-    z-index: 4;
-    pointer-events: none;
+    font-size: 1rem;
+    color: var(--text-secondary);
+    margin-top: var(--spacing-sm);
 }
 
-.video-card.active:not(:hover) .card-title {
-    opacity: 0;
-}
-
-.video-card.active:hover .card-title {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-/* Loading spinner for cards */
-.video-card .card-loading {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 3;
-    display: none;
-}
-
-.video-card.loading .card-loading {
-    display: block;
-}
-
-.video-card.loading .card-play-overlay {
-    display: none;
-}
-
-.card-loading-spinner {
-    width: 50px;
-    height: 50px;
-    border: 3px solid rgba(255, 255, 255, 0.1);
-    border-top-color: var(--accent-magenta);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-    to { transform: rotate(360deg); }
+.video-counter .current-index {
+    color: var(--accent-magenta);
+    font-weight: 600;
 }
 
 /* Video Info Panel */

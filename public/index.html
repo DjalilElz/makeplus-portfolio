@@ -99,18 +99,31 @@
     <!-- Video Showcase Section - Swiper Slider -->
     <section id="videos" class="video-section">
         <div class="video-showcase">
-            <!-- Swiper Container -->
-            <div class="swiper videoSwiper">
-                <div class="swiper-wrapper">
-                    <!-- Video slides will be populated by JavaScript -->
+            <!-- Simple Video Carousel -->
+            <div class="video-carousel">
+                <button class="video-nav-btn video-prev" aria-label="Previous video">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
+                </button>
+                
+                <div class="video-container">
+                    <!-- Single video displayed at a time -->
+                    <div class="video-player-wrapper">
+                        <iframe id="current-video-iframe" class="video-iframe" src="" title="" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                    </div>
                 </div>
                 
-                <!-- Navigation Arrows -->
-                <div class="swiper-button-prev"></div>
-                <div class="swiper-button-next"></div>
-                
-                <!-- Pagination -->
-                <div class="swiper-pagination"></div>
+                <button class="video-nav-btn video-next" aria-label="Next video">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- Video Counter -->
+            <div class="video-counter">
+                <span class="current-index">1</span> / <span class="total-count">1</span>
             </div>
         </div>
         

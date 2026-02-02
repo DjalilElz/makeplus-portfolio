@@ -265,7 +265,12 @@ async function fetchVideos() {
         videos.forEach((v, i) => console.log(`  Video ${i + 1}: ${v.youtubeId} - ${v.title}`));
         
         // Build the video grid
-        buildVideoGrid();
+        console.log('📹 About to call buildVideoGrid...');
+        try {
+            buildVideoGrid();
+        } catch (gridError) {
+            console.error('❌ Error in buildVideoGrid:', gridError);
+        }
     } catch (err) {
         console.error('❌ Error fetching videos:', err);
     }

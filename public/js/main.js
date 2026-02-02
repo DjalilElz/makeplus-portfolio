@@ -232,11 +232,10 @@ function initializeScrollSpy() {
 }
 
 // ===================================
-// VIDEO SECTION (SIMPLE CLICK NAVIGATION)
+// VIDEO SECTION - HORIZONTAL GRID
 // ===================================
 
 let videos = [];
-let currentVideoIndex = 0;
 
 // Fetch videos from API
 async function fetchVideos() {
@@ -257,126 +256,82 @@ async function fetchVideos() {
         // Store videos
         videos = sorted.map(v => ({
             youtubeId: v.youtubeVideoId,
-            title: v.titleEn,
-            titleFr: v.titleFr,
-            order: v.order
+            title: v.titleEn || 'Video',
+            titleFr: v.titleFr || 'Vidéo',
+            order: v.order || 0
         }));
 
-        console.log('✅ Videos loaded in order:', videos.map(v => `${v.order}: ${v.title}`));
+        console.log('✅ Loaded ' + videos.length + ' videos from API');
+        videos.forEach((v, i) => console.log(`  Video ${i + 1}: ${v.youtubeId} - ${v.title}`));
         
-        // Initialize the video section
-        initializeVideoSection();
+        // Build the video grid
+        buildVideoGrid();
     } catch (err) {
         console.error('❌ Error fetching videos:', err);
     }
 }
 
-// Initialize video section with click navigation
-function initializeVideoSection() {
+// Build horizontal video grid
+function buildVideoGrid() {
+    const grid = document.getElementById('video-grid');
+    if (!grid) {
+        console.error('❌ Video grid container not found');
+        return;
+    }
+    
     if (videos.length === 0) {
         console.log('⚠️ No videos to display');
         return;
     }
 
-    // Start at first video (order 1)
-    currentVideoIndex = 0;
-    
-    // Display the first video
-    displayCurrentVideo();
-    
-    // Setup navigation buttons
-    const prevBtn = document.querySelector('.video-prev');
-    const nextBtn = document.querySelector('.video-next');
-    
-    if (prevBtn) {
-        prevBtn.addEventListener('click', () => {
-            if (currentVideoIndex > 0) {
-                currentVideoIndex--;
-                displayCurrentVideo();
-            }
-        });
-    }
-    
-    if (nextBtn) {
-        nextBtn.addEventListener('click', () => {
-            if (currentVideoIndex < videos.length - 1) {
-                currentVideoIndex++;
-                displayCurrentVideo();
-            }
-        });
-    }
-    
-    // Update button states
-    updateNavButtons();
-    
-    console.log('✅ Video section initialized - showing video order', videos[0].order);
-}
+    // Clear existing content
+    grid.innerHTML = '';
 
-// Display the current video
-function displayCurrentVideo() {
-    const video = videos[currentVideoIndex];
-    if (!video) return;
-    
-    const iframe = document.getElementById('current-video-iframe');
-    const titleEl = document.querySelector('.current-video-title');
-    const currentIndexEl = document.querySelector('.current-index');
-    const totalCountEl = document.querySelector('.total-count');
-    
-    // Update iframe
-    if (iframe) {
-        iframe.src = `https://www.youtube.com/embed/${video.youtubeId}?rel=0&modestbranding=1&playsinline=1`;
-        iframe.title = currentLanguage === 'fr' ? video.titleFr : video.title;
-    }
-    
-    // Update title
-    if (titleEl) {
-        titleEl.textContent = currentLanguage === 'fr' ? video.titleFr : video.title;
-    }
-    
-    // Update counter
-    if (currentIndexEl) {
-        currentIndexEl.textContent = currentVideoIndex + 1;
-    }
-    if (totalCountEl) {
-        totalCountEl.textContent = videos.length;
-    }
-    
-    // Update navigation button states
-    updateNavButtons();
-    
-    console.log(`📹 Now showing: ${video.title} (order ${video.order}) - ${currentVideoIndex + 1}/${videos.length}`);
-}
+    // Create video cards
+    videos.forEach((video, index) => {
+        const title = currentLanguage === 'fr' ? video.titleFr : video.title;
+        
+        const card = document.createElement('div');
+        card.className = 'video-card';
+        card.dataset.index = index;
+        
+        card.innerHTML = `
+            <div class="video-card-inner">
+                <div class="video-wrapper">
+                    <iframe 
+                        src="https://www.youtube.com/embed/${video.youtubeId}?rel=0&modestbranding=1"
+                        title="${title}"
+                        frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        allowfullscreen
+                    ></iframe>
+                </div>
+                <div class="video-title">${title}</div>
+            </div>
+        `;
+        
+        grid.appendChild(card);
+    });
 
-// Update navigation button states (disable at boundaries)
-function updateNavButtons() {
-    const prevBtn = document.querySelector('.video-prev');
-    const nextBtn = document.querySelector('.video-next');
-    
-    if (prevBtn) {
-        prevBtn.disabled = currentVideoIndex === 0;
-        prevBtn.style.opacity = currentVideoIndex === 0 ? '0.3' : '1';
-    }
-    
-    if (nextBtn) {
-        nextBtn.disabled = currentVideoIndex === videos.length - 1;
-        nextBtn.style.opacity = currentVideoIndex === videos.length - 1 ? '0.3' : '1';
-    }
+    console.log('✅ Video grid built with ' + videos.length + ' videos');
 }
 
 // Update video titles when language changes
 function updateVideoDisplay() {
     if (videos.length === 0) return;
     
-    const video = videos[currentVideoIndex];
-    const titleEl = document.querySelector('.current-video-title');
-    const iframe = document.getElementById('current-video-iframe');
-    
-    if (titleEl && video) {
-        titleEl.textContent = currentLanguage === 'fr' ? video.titleFr : video.title;
-    }
-    if (iframe && video) {
-        iframe.title = currentLanguage === 'fr' ? video.titleFr : video.title;
-    }
+    const cards = document.querySelectorAll('.video-card');
+    cards.forEach((card, index) => {
+        const video = videos[index];
+        if (video) {
+            const titleEl = card.querySelector('.video-title');
+            const iframe = card.querySelector('iframe');
+            const title = currentLanguage === 'fr' ? video.titleFr : video.title;
+            
+            if (titleEl) titleEl.textContent = title;
+            if (iframe) iframe.title = title;
+        }
+    });
 }
 
 // ===================================

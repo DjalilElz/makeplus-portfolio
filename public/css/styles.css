@@ -518,7 +518,8 @@ body {
 .video-section {
     padding: var(--spacing-2xl) 0;
     background: rgba(10, 10, 10, 0.5);
-    overflow: hidden;
+    overflow: visible;
+    min-height: 400px;
 }
 
 .video-showcase {
@@ -533,12 +534,13 @@ body {
     display: flex;
     gap: var(--spacing-xl);
     overflow-x: auto;
-    overflow-y: hidden;
+    overflow-y: visible;
     padding: var(--spacing-xl) var(--spacing-md);
     scroll-behavior: smooth;
     scrollbar-width: thin;
     scrollbar-color: var(--accent-magenta) rgba(255, 255, 255, 0.1);
     -webkit-overflow-scrolling: touch;
+    min-height: 350px;
 }
 
 .video-grid::-webkit-scrollbar {

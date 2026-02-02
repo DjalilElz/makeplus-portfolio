@@ -273,7 +273,11 @@ async function fetchVideos() {
 
 // Build horizontal video grid
 function buildVideoGrid() {
+    console.log('🔧 Building video grid...');
+    
     const grid = document.getElementById('video-grid');
+    console.log('📍 Grid element:', grid);
+    
     if (!grid) {
         console.error('❌ Video grid container not found');
         return;
@@ -284,11 +288,15 @@ function buildVideoGrid() {
         return;
     }
 
+    console.log('📹 Creating cards for', videos.length, 'videos');
+
     // Clear existing content
     grid.innerHTML = '';
 
     // Create video cards
     videos.forEach((video, index) => {
+        console.log(`  Creating card ${index + 1}: ${video.youtubeId}`);
+        
         const title = currentLanguage === 'fr' ? video.titleFr : video.title;
         
         const card = document.createElement('div');
@@ -314,6 +322,7 @@ function buildVideoGrid() {
     });
 
     console.log('✅ Video grid built with ' + videos.length + ' videos');
+    console.log('📍 Grid children count:', grid.children.length);
 }
 
 // Update video titles when language changes

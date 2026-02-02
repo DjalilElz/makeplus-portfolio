@@ -106,8 +106,8 @@ function switchLanguage(lang) {
         }
     });
 
-    // Update video titles if videos already loaded
-    if (videos.length > 0) {
+    // Update video titles if Swiper already initialized
+    if (videoSwiper && videos.length > 0) {
         const slides = document.querySelectorAll('.videoSwiper .swiper-slide');
         slides.forEach((slide, index) => {
             const titleEl = slide.querySelector('.video-card-title');
@@ -117,8 +117,13 @@ function switchLanguage(lang) {
             }
         });
 
-        const titleEl = document.querySelector('.current-video-title');
-        updateVideoTitle(titleEl, videoCurrentIndex);
+        // Update main title
+        const currentIndex = videoSwiper.realIndex || 0;
+        const mainTitleEl = document.querySelector('.current-video-title');
+        if (mainTitleEl && videos[currentIndex]) {
+            const title = langCode === 'fr' ? videos[currentIndex].titleFr : videos[currentIndex].title;
+            mainTitleEl.textContent = title;
+        }
     }
 }
 
@@ -242,14 +247,13 @@ function initializeScrollSpy() {
 }
 
 // ===================================
-// VIDEO SECTION (SIMPLE, RELIABLE)
+// VIDEO SECTION (STATIC, NO REBUILD)
 // ===================================
 
 let videos = [];
 let videoSwiper = null;
-let videoCurrentIndex = 0;
 
-// Fetch videos from API (sorted by order)
+// Fetch videos from API and initialize Swiper once
 async function fetchVideos() {
     try {
         console.log('📡 Fetching videos...');
@@ -264,46 +268,36 @@ async function fetchVideos() {
         // Sort by order ascending
         const sorted = [...result.data].sort((a, b) => (a.order || 999) - (b.order || 999));
 
-        // Normalize
-        videos.length = 0;
-        sorted.forEach(v => {
-            videos.push({
-                youtubeId: v.youtubeVideoId,
-                title: v.titleEn,
-                titleFr: v.titleFr,
-                order: v.order,
-                thumbnail: `https://img.youtube.com/vi/${v.youtubeVideoId}/hqdefault.jpg`
-            });
-        });
+        // Store videos
+        videos = sorted.map(v => ({
+            youtubeId: v.youtubeVideoId,
+            title: v.titleEn,
+            titleFr: v.titleFr,
+            order: v.order
+        }));
 
-        console.log('✅ Videos ready:', videos.map(v => `order ${v.order}: ${v.title}`));
-        buildVideoSection();
+        console.log('✅ Videos loaded:', videos.map(v => `order ${v.order}: ${v.title}`));
+        
+        // Build slides once and initialize Swiper
+        initializeVideoSwiper();
     } catch (err) {
         console.error('❌ Error fetching videos:', err);
     }
 }
 
-function buildVideoSection() {
+// Initialize Swiper once - no rebuilding
+function initializeVideoSwiper() {
     const wrapper = document.querySelector('.videoSwiper .swiper-wrapper');
-    const titleEl = document.querySelector('.current-video-title');
-
-    if (!wrapper) return;
-    if (videos.length === 0) return;
-
-    // Reset DOM and swiper
-    wrapper.innerHTML = '';
-    if (videoSwiper) {
-        videoSwiper.destroy(true, true);
-        videoSwiper = null;
+    if (!wrapper || videos.length === 0) {
+        console.log('⚠️ Cannot initialize video swiper');
+        return;
     }
 
-    // Slides
+    // Build slides once
     videos.forEach((video, index) => {
         const title = currentLanguage === 'fr' ? video.titleFr : video.title;
         const slide = document.createElement('div');
         slide.className = 'swiper-slide';
-        slide.dataset.index = index;
-        slide.dataset.order = video.order;
         slide.innerHTML = `
             <div class="video-card-swiper">
                 <div class="video-player-wrapper">
@@ -322,7 +316,7 @@ function buildVideoSection() {
         wrapper.appendChild(slide);
     });
 
-    // Swiper init (force slide 0)
+    // Initialize Swiper once
     videoSwiper = new Swiper('.videoSwiper', {
         effect: 'coverflow',
         grabCursor: true,
@@ -349,26 +343,27 @@ function buildVideoSection() {
         },
         keyboard: { enabled: true },
         on: {
-            init: function () {
-                this.slideTo(0, 0, false);
-                videoCurrentIndex = 0;
-                updateVideoTitle(titleEl, 0);
-                console.log('✅ Video swiper initialized at slide 0');
-            },
             slideChange: function () {
-                videoCurrentIndex = this.realIndex;
-                updateVideoTitle(titleEl, videoCurrentIndex);
-                console.log(`🔄 Now at index ${videoCurrentIndex} (order ${videos[videoCurrentIndex].order})`);
-            },
-        },
+                const currentIndex = this.realIndex;
+                const video = videos[currentIndex];
+                const titleEl = document.querySelector('.current-video-title');
+                if (titleEl && video) {
+                    const title = currentLanguage === 'fr' ? video.titleFr : video.title;
+                    titleEl.textContent = title;
+                }
+                console.log(`📹 Slide ${currentIndex + 1}/${videos.length}: ${video.title} (order ${video.order})`);
+            }
+        }
     });
-}
 
-function updateVideoTitle(titleEl, idx) {
-    if (!titleEl || !videos[idx]) return;
-    const video = videos[idx];
-    const title = currentLanguage === 'fr' ? video.titleFr : video.title;
-    titleEl.textContent = title;
+    // Set initial title
+    const titleEl = document.querySelector('.current-video-title');
+    if (titleEl && videos[0]) {
+        const title = currentLanguage === 'fr' ? videos[0].titleFr : videos[0].title;
+        titleEl.textContent = title;
+    }
+
+    console.log('✅ Video swiper initialized with', videos.length, 'slides');
 }
 
 // ===================================

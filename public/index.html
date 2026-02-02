@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Makeplus - Solutions Marketing & Événementiel">
     <title>Makeplus - Plus qu'un partenaire</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
     <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body>
@@ -95,29 +96,22 @@
         </div>
     </div>
 
-    <!-- Video Showcase Section - Coverflow Style -->
+    <!-- Video Showcase Section - Swiper Slider -->
     <section id="videos" class="video-section">
         <div class="video-showcase">
-            <!-- Navigation Arrow Left -->
-            <button class="video-nav video-nav-prev" aria-label="Previous video">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
-                </svg>
-            </button>
-            
-            <!-- 3D Coverflow Container -->
-            <div class="coverflow-container">
-                <div class="coverflow-track">
-                    <!-- Video cards will be populated by JavaScript -->
+            <!-- Swiper Container -->
+            <div class="swiper videoSwiper">
+                <div class="swiper-wrapper">
+                    <!-- Video slides will be populated by JavaScript -->
                 </div>
+                
+                <!-- Navigation Arrows -->
+                <div class="swiper-button-prev"></div>
+                <div class="swiper-button-next"></div>
+                
+                <!-- Pagination -->
+                <div class="swiper-pagination"></div>
             </div>
-            
-            <!-- Navigation Arrow Right -->
-            <button class="video-nav video-nav-next" aria-label="Next video">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
-                </svg>
-            </button>
         </div>
         
         <!-- Video Title -->
@@ -189,7 +183,7 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label for="name" data-fr="Nom complet" data-en="Full Name">Nom complet</label>
-                        <input type="text" id="name" name="name" class="form-input glass-input" required data-fr-placeholder="Votre nom" data-en-placeholder="Your name">
+                        <input type="text" id="name" name="name" class="form-input glass-input" required data-fr-placeholder="Prénom Nom" data-en-placeholder="First Last" minlength="3">
                     </div>
                     <div class="form-group">
                         <label for="email" data-fr="Email" data-en="Email">Email</label>
@@ -204,18 +198,18 @@
                     </div>
                     <div class="form-group">
                         <label for="company" data-fr="Entreprise" data-en="Company">Entreprise</label>
-                        <input type="text" id="company" name="company" class="form-input glass-input" data-fr-placeholder="Nom de votre entreprise" data-en-placeholder="Your company name">
+                        <input type="text" id="company" name="company" class="form-input glass-input" data-fr-placeholder="Nom de votre entreprise" data-en-placeholder="Your company name" maxlength="100">
                     </div>
                 </div>
                 
                 <div class="form-group">
                     <label for="subject" data-fr="Sujet" data-en="Subject">Sujet</label>
-                    <input type="text" id="subject" name="subject" class="form-input glass-input" required data-fr-placeholder="Sujet de votre message" data-en-placeholder="Subject of your message">
+                    <input type="text" id="subject" name="subject" class="form-input glass-input" required data-fr-placeholder="Sujet de votre message" data-en-placeholder="Subject of your message" minlength="5" maxlength="200">
                 </div>
                 
                 <div class="form-group">
                     <label for="message" data-fr="Message" data-en="Message">Message</label>
-                    <textarea id="message" name="message" rows="4" class="form-input glass-input" required data-fr-placeholder="Décrivez votre projet ou demande..." data-en-placeholder="Describe your project or request..."></textarea>
+                    <textarea id="message" name="message" rows="4" class="form-input glass-input" required data-fr-placeholder="Décrivez votre projet ou demande..." data-en-placeholder="Describe your project or request..." minlength="10" maxlength="2000"></textarea>
                 </div>
                 
                 <button type="submit" class="submit-btn glass-button">
@@ -266,6 +260,7 @@
         </div>
     </footer>
 
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     <script src="/js/main.js"></script>
 </body>
 </html>

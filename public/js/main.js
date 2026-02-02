@@ -2,7 +2,11 @@
 // MAKEPLUS PORTFOLIO - MAIN JAVASCRIPT
 // ===================================
 
+// API Configuration
+const API_BASE_URL = 'https://makeplus-portfolio-backend.vercel.app/api';
+
 // Client logos data - all SVG files from "Ils Nous Fais Confiance"
+// Will be replaced by API data if available
 const clientLogos = [
     'AAAIC.svg',
     'ANOL.svg',
@@ -35,6 +39,9 @@ const clientLogos = [
     'Tiktoph.svg'
 ];
 
+// Store partner data from API
+let partnersData = [];
+
 // ===================================
 // LANGUAGE SWITCHER
 // ===================================
@@ -57,141 +64,132 @@ function initializeLanguageSwitcher() {
     // Set initial language based on browser
     currentLanguage = detectBrowserLanguage();
     document.documentElement.setAttribute('data-lang', currentLanguage);
-    
-    // Update button states
+
+    // Bind language switch buttons
     const langButtons = document.querySelectorAll('.lang-btn');
     langButtons.forEach(btn => {
-        if (btn.dataset.lang === currentLanguage) {
-            btn.classList.add('active');
-        } else {
-            btn.classList.remove('active');
-        }
-    });
-    
-    // Apply initial language
-    switchLanguage(currentLanguage);
-    
-    // Add click handlers
-    langButtons.forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.lang === currentLanguage);
         btn.addEventListener('click', () => {
-            const lang = btn.dataset.lang;
-            if (lang !== currentLanguage) {
-                switchLanguage(lang);
-                
-                // Update button states
-                langButtons.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-            }
+            const lang = btn.dataset.lang || 'fr';
+            currentLanguage = lang;
+            document.documentElement.setAttribute('data-lang', currentLanguage);
+            langButtons.forEach(b => b.classList.toggle('active', b === btn));
+            // Update all translatable text
+            switchLanguage(currentLanguage);
         });
     });
+
+    // Apply initial language to text
+    switchLanguage(currentLanguage);
 }
 
+// Switch all translatable UI text between FR/EN
 function switchLanguage(lang) {
-    currentLanguage = lang;
-    document.documentElement.setAttribute('data-lang', lang);
-    
-    // Update all elements with data-fr and data-en attributes
-    const translatableElements = document.querySelectorAll('[data-fr][data-en]');
-    
-    translatableElements.forEach(el => {
-        const text = el.getAttribute(`data-${lang}`);
+    const langCode = lang === 'fr' ? 'fr' : 'en';
+    document.documentElement.setAttribute('data-lang', langCode);
+
+    // Text nodes
+    const translatable = document.querySelectorAll('[data-fr],[data-en]');
+    translatable.forEach(el => {
+        const text = langCode === 'fr' ? el.dataset.fr : el.dataset.en;
         if (text) {
-            // Handle line breaks in service cards
-            if (el.parentElement.classList.contains('service-card')) {
-                el.innerHTML = text.replace('&', '<br>&');
-            } else {
-                el.textContent = text;
-            }
+            el.textContent = text;
         }
     });
-    
-    // Update form input placeholders
-    const inputs = document.querySelectorAll('[data-fr-placeholder][data-en-placeholder]');
-    inputs.forEach(input => {
-        const placeholder = input.getAttribute(`data-${lang}-placeholder`);
+
+    // Placeholders
+    const placeholderEls = document.querySelectorAll('[data-fr-placeholder],[data-en-placeholder]');
+    placeholderEls.forEach(el => {
+        const placeholder = langCode === 'fr' ? el.dataset.frPlaceholder : el.dataset.enPlaceholder;
         if (placeholder) {
-            input.placeholder = placeholder;
+            el.placeholder = placeholder;
         }
     });
-    
-    // Update video titles in coverflow
-    if (typeof updateVideoTitles === 'function') {
-        updateVideoTitles();
-    }
-    
-    // Update document language
-    document.documentElement.lang = lang;
-}
 
-// ===================================
-// INFINITE SCROLL ANIMATION FOR LOGOS
-// ===================================
-function initializeInfiniteScroll() {
-    const scrollContainer = document.querySelector('.clients-scroll');
-    if (!scrollContainer) return;
-
-    const basePath = '/assets/ui-components/Les SVG/Ils Nous Fais Confiance/';
-    
-    // Create logos twice for seamless infinite scroll
-    const createLogoSet = () => {
-        return clientLogos.map(logo => {
-            const img = document.createElement('img');
-            img.src = `${basePath}${logo}`;
-            img.alt = logo.replace('.svg', '');
-            img.className = 'client-logo';
-            img.loading = 'lazy';
-            return img;
+    // Update video titles if videos already loaded
+    if (videos.length > 0) {
+        const slides = document.querySelectorAll('.videoSwiper .swiper-slide');
+        slides.forEach((slide, index) => {
+            const titleEl = slide.querySelector('.video-card-title');
+            const video = videos[index];
+            if (titleEl && video) {
+                titleEl.textContent = langCode === 'fr' ? video.titleFr : video.title;
+            }
         });
-    };
 
-    // Add first set
-    const firstSet = createLogoSet();
-    firstSet.forEach(img => scrollContainer.appendChild(img));
-
-    // Add duplicate set for seamless loop
-    const secondSet = createLogoSet();
-    secondSet.forEach(img => scrollContainer.appendChild(img));
+        const titleEl = document.querySelector('.current-video-title');
+        updateVideoTitle(titleEl, videoCurrentIndex);
+    }
 }
 
-// ===================================
-// SCROLL REVEAL ANIMATIONS
-// ===================================
+// Preload key images (partner logos) to avoid flicker
+function preloadImages() {
+    const logoPaths = clientLogos.map(logo => `/assets/ui-components/Les SVG/Ils Nous Fais Confiance/${logo}`);
+    logoPaths.forEach(src => {
+        const img = new Image();
+        img.src = src;
+    });
+}
+
+// Populate and animate the partner logo scroller
+function initializeInfiniteScroll() {
+    const scrollEl = document.querySelector('.clients-scroll');
+    if (!scrollEl) return;
+
+    // Clear existing content
+    scrollEl.innerHTML = '';
+
+    const sources = (partnersData && partnersData.length > 0)
+        ? partnersData.map(p => p.logoUrl || p.logo || p.image || p.src || p)
+        : clientLogos.map(logo => `/assets/ui-components/Les SVG/Ils Nous Fais Confiance/${logo}`);
+
+    if (sources.length === 0) return;
+
+    // Duplicate list for seamless scroll
+    const items = [...sources, ...sources];
+
+    items.forEach((src, idx) => {
+        const img = document.createElement('img');
+        img.className = 'client-logo';
+        img.src = src.startsWith('http') ? src : src;
+        img.alt = `Partner logo ${idx + 1}`;
+        img.loading = 'lazy';
+        scrollEl.appendChild(img);
+    });
+}
+
+// Minor hover effects for service cards (safe no-op if not present)
+function initializeServiceCards() {
+    const cards = document.querySelectorAll('.service-card');
+    cards.forEach(card => {
+        card.addEventListener('mouseenter', () => card.classList.add('hover'));
+        card.addEventListener('mouseleave', () => card.classList.remove('hover'));
+    });
+}
+
+// Add simple fade-in when elements enter viewport
 function initializeScrollAnimations() {
-    const observerOptions = {
-        threshold: 0.1,
-        rootMargin: '0px 0px -50px 0px'
-    };
+    const elements = document.querySelectorAll('.glass-card, .service-card, .section-title, .brand-description');
+    if (elements.length === 0) return;
 
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
-                entry.target.classList.add('active');
-                observer.unobserve(entry.target);
+                entry.target.classList.add('in-view');
             }
         });
-    }, observerOptions);
+    }, { threshold: 0.2 });
 
-    // Observe all reveal elements
-    const elements = document.querySelectorAll('.reveal');
     elements.forEach(el => observer.observe(el));
 }
 
-// ===================================
-// SERVICE CARD HOVER EFFECTS
-// ===================================
-function initializeServiceCards() {
-    const cards = document.querySelectorAll('.service-card');
-    
-    cards.forEach(card => {
-        card.addEventListener('mouseenter', () => {
-            // Add subtle glow effect
-            card.style.boxShadow = '0 8px 32px rgba(135, 44, 122, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.15)';
-        });
-        
-        card.addEventListener('mouseleave', () => {
-            card.style.boxShadow = '';
-        });
-    });
+// Ensure the zelij pattern has enough items for the marquee
+function initializeZelijScroll() {
+    const scrollEl = document.querySelector('.zelij-scroll');
+    if (!scrollEl) return;
+    const children = Array.from(scrollEl.children);
+    // Duplicate once to prevent gaps
+    children.forEach(child => scrollEl.appendChild(child.cloneNode(true)));
 }
 
 // ===================================
@@ -220,22 +218,18 @@ function initializeSmoothScroll() {
 function initializeScrollSpy() {
     const sections = document.querySelectorAll('section[id]');
     const navLinks = document.querySelectorAll('.nav-link');
-    
+
     const observerOptions = {
         root: null,
         rootMargin: '-20% 0px -70% 0px',
         threshold: 0
     };
-    
+
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 const sectionId = entry.target.getAttribute('id');
-                
-                // Remove active class from all links
                 navLinks.forEach(link => link.classList.remove('active'));
-                
-                // Add active class to current section link
                 const activeLink = document.querySelector(`.nav-link[href="#${sectionId}"]`);
                 if (activeLink) {
                     activeLink.classList.add('active');
@@ -243,541 +237,300 @@ function initializeScrollSpy() {
             }
         });
     }, observerOptions);
-    
+
     sections.forEach(section => observer.observe(section));
 }
 
 // ===================================
-// PRELOAD CRITICAL IMAGES
-// ===================================
-function preloadImages() {
-    const criticalImages = [
-        '/assets/ui-components/Les SVG/Makeplus Logo Variation/Icon vide - sans adidas.svg',
-        '/assets/ui-components/Les SVG/Makeplus Logo Variation/Icon.svg',
-        '/assets/ui-components/Les SVG/Zelij.svg'
-    ];
-    
-    criticalImages.forEach(src => {
-        const img = new Image();
-        img.src = src;
-    });
-}
-
-// ===================================
-// ZELIJ SCROLL OPTIMIZATION
-// ===================================
-function initializeZelijScroll() {
-    const zelij = document.querySelector('.zelij-scroll');
-    if (!zelij) return;
-    
-    // Check if animation is performing well
-    let lastTime = performance.now();
-    let frameCount = 0;
-    
-    function checkPerformance() {
-        frameCount++;
-        const currentTime = performance.now();
-        
-        if (currentTime - lastTime >= 1000) {
-            const fps = frameCount;
-            frameCount = 0;
-            lastTime = currentTime;
-            
-            // If FPS drops below 30, reduce animation complexity
-            if (fps < 30) {
-                zelij.style.animationDuration = '120s';
-            }
-        }
-        
-        requestAnimationFrame(checkPerformance);
-    }
-    
-    // Start performance monitoring (optional)
-    // requestAnimationFrame(checkPerformance);
-}
-
-// ===================================
-// COVERFLOW VIDEO SHOWCASE
+// VIDEO SECTION (SIMPLE, RELIABLE)
 // ===================================
 
-// Videos will be loaded dynamically from the /assets/videos folder
-// Place your .mp4 files there and they will auto-appear with their filename as title
 let videos = [];
+let videoSwiper = null;
+let videoCurrentIndex = 0;
 
-let currentVideoIndex = 0;
-let isPlaying = false;
-let currentPlayingVideo = null;
-
-// Function to extract clean title from filename
-function getVideoTitle(filename) {
-    // Remove extension and path
-    let name = filename.replace(/\.[^/.]+$/, '').replace(/^.*[\\\/]/, '');
-    // Replace underscores and hyphens with spaces
-    name = name.replace(/[_-]/g, ' ');
-    // Capitalize first letter of each word
-    name = name.replace(/\b\w/g, c => c.toUpperCase());
-    return name;
-}
-
-// Load videos from server
-async function loadVideos() {
+// Fetch videos from API (sorted by order)
+async function fetchVideos() {
     try {
-        const response = await fetch('/api/videos');
-        const videoFiles = await response.json();
-        
-        videos = videoFiles.map(filename => {
-            const title = getVideoTitle(filename);
-            return {
-                title: title,
-                titleFr: title, // Same title for both languages (it's the project name)
-                src: `/assets/videos/${filename}`,
-                poster: '' // Will use video frame as poster
-            };
-        });
-        
-        return videos;
-    } catch (error) {
-        console.log('Could not load videos from API, using defaults');
-        // Fallback videos if API not available
-        videos = [
-            { title: 'Project 1', titleFr: 'Projet 1', src: '/assets/videos/video1.mp4', poster: '' },
-            { title: 'Project 2', titleFr: 'Projet 2', src: '/assets/videos/video2.mp4', poster: '' },
-            { title: 'Project 3', titleFr: 'Projet 3', src: '/assets/videos/video3.mp4', poster: '' }
-        ];
-        return videos;
-    }
-}
-
-async function initializeCoverflow() {
-    const coverflowTrack = document.querySelector('.coverflow-track');
-    const prevBtn = document.querySelector('.video-nav-prev');
-    const nextBtn = document.querySelector('.video-nav-next');
-    const videoTitleEl = document.querySelector('.current-video-title');
-    
-    if (!coverflowTrack) return;
-    
-    // Load videos from server
-    await loadVideos();
-    
-    if (videos.length === 0) {
-        console.log('No videos found');
-        return;
-    }
-    
-    // Create video cards
-    videos.forEach((video, index) => {
-        const card = createVideoCard(video, index);
-        coverflowTrack.appendChild(card);
-    });
-    
-    // Navigation button handlers
-    prevBtn?.addEventListener('click', () => navigateTo(currentVideoIndex - 1));
-    nextBtn?.addEventListener('click', () => navigateTo(currentVideoIndex + 1));
-    
-    // Keyboard navigation
-    document.addEventListener('keydown', (e) => {
-        const videoSection = document.querySelector('.video-section');
-        const rect = videoSection?.getBoundingClientRect();
-        
-        // Only respond if video section is in view
-        if (rect && rect.top < window.innerHeight && rect.bottom > 0) {
-            if (e.key === 'ArrowLeft') {
-                navigateTo(currentVideoIndex - 1);
-            } else if (e.key === 'ArrowRight') {
-                navigateTo(currentVideoIndex + 1);
-            }
-        }
-    });
-    
-    // Touch/swipe support
-    let touchStartX = 0;
-    let touchEndX = 0;
-    
-    coverflowTrack.addEventListener('touchstart', (e) => {
-        touchStartX = e.changedTouches[0].screenX;
-    }, { passive: true });
-    
-    coverflowTrack.addEventListener('touchend', (e) => {
-        touchEndX = e.changedTouches[0].screenX;
-        handleSwipe();
-    }, { passive: true });
-    
-    function handleSwipe() {
-        const swipeThreshold = 50;
-        const diff = touchStartX - touchEndX;
-        
-        if (Math.abs(diff) > swipeThreshold) {
-            if (diff > 0) {
-                navigateTo(currentVideoIndex + 1);
-            } else {
-                navigateTo(currentVideoIndex - 1);
-            }
-        }
-    }
-    
-    // Mouse wheel support (horizontal scroll)
-    coverflowTrack.addEventListener('wheel', (e) => {
-        if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey) {
-            e.preventDefault();
-            if (e.deltaX > 30 || (e.shiftKey && e.deltaY > 30)) {
-                navigateTo(currentVideoIndex + 1);
-            } else if (e.deltaX < -30 || (e.shiftKey && e.deltaY < -30)) {
-                navigateTo(currentVideoIndex - 1);
-            }
-        }
-    }, { passive: false });
-    
-    // Initialize first position
-    updateCoverflow();
-    
-    // Stop video when user scrolls away from video section
-    const videoSection = document.querySelector('.video-section');
-    if (videoSection) {
-        const sectionObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (!entry.isIntersecting && isPlaying) {
-                    // User scrolled away, stop the video
-                    const activeCard = document.querySelector('.video-card.active');
-                    if (activeCard) {
-                        pauseVideo(activeCard);
-                    }
-                }
-            });
-        }, {
-            threshold: 0.3 // Stop when less than 30% of section is visible
-        });
-        
-        sectionObserver.observe(videoSection);
-    }
-}
-
-function createVideoCard(video, index) {
-    const card = document.createElement('div');
-    card.className = 'video-card';
-    card.dataset.index = index;
-    
-    const title = currentLanguage === 'fr' ? video.titleFr : video.title;
-    
-    card.innerHTML = `
-        <video 
-            preload="auto"
-            playsinline
-            muted
-        >
-            <source src="${video.src}" type="video/mp4">
-        </video>
-        <div class="card-play-overlay">
-            <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M8 5v14l11-7z"/>
-            </svg>
-        </div>
-        <div class="video-controls-overlay">
-            <button class="video-control-btn play-pause-btn">
-                <svg class="play-icon" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M8 5v14l11-7z"/>
-                </svg>
-                <svg class="pause-icon" viewBox="0 0 24 24" fill="currentColor" style="display:none">
-                    <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
-                </svg>
-            </button>
-            <button class="video-control-btn fullscreen-btn" title="Fullscreen">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
-                </svg>
-            </button>
-        </div>
-        <div class="video-progress-bar">
-            <div class="video-progress-filled"></div>
-        </div>
-        <div class="card-title">${title}</div>
-        <div class="card-loading">
-            <div class="card-loading-spinner"></div>
-        </div>
-    `;
-    
-    // Video element
-    const videoEl = card.querySelector('video');
-    
-    // Click on card to navigate or toggle play
-    card.addEventListener('click', (e) => {
-        // Don't trigger if clicking on controls
-        if (e.target.closest('.video-controls-overlay') || e.target.closest('.video-progress-bar')) {
+        console.log('📡 Fetching videos...');
+        const response = await fetch(`${API_BASE_URL}/content/videos`);
+        if (!response.ok) throw new Error('Failed to fetch videos');
+        const result = await response.json();
+        if (!result.success || !result.data || result.data.length === 0) {
+            console.log('⚠️ No videos found');
             return;
         }
-        handleCardClick(card, index);
-    });
-    
-    // Control button handlers
-    const playPauseBtn = card.querySelector('.play-pause-btn');
-    const fullscreenBtn = card.querySelector('.fullscreen-btn');
-    const progressBar = card.querySelector('.video-progress-bar');
-    
-    playPauseBtn?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (videoEl.paused) {
-            playVideo(card);
-        } else {
-            pauseVideo(card);
-        }
-    });
-    
-    fullscreenBtn?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        toggleFullscreen(card);
-    });
-    
-    // Progress bar click to seek
-    progressBar?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const rect = progressBar.getBoundingClientRect();
-        const percent = (e.clientX - rect.left) / rect.width;
-        videoEl.currentTime = percent * videoEl.duration;
-    });
-    
-    // Video element event handlers
-    videoEl.addEventListener('waiting', () => {
-        card.classList.add('loading');
-    });
-    
-    videoEl.addEventListener('canplay', () => {
-        card.classList.remove('loading');
-    });
-    
-    videoEl.addEventListener('loadeddata', () => {
-        // Ensure first frame is visible when video loads
-        if (videoEl.currentTime === 0) {
-            videoEl.currentTime = 0.1; // Jump to first visible frame
-        }
-    });
-    
-    videoEl.addEventListener('ended', () => {
-        // Auto-play next video when current ends
-        if (currentVideoIndex < videos.length - 1) {
-            navigateTo(currentVideoIndex + 1);
-        } else {
-            stopVideo(card);
-        }
-    });
-    
-    videoEl.addEventListener('timeupdate', () => {
-        const progressFilled = card.querySelector('.video-progress-filled');
-        if (progressFilled && videoEl.duration) {
-            const percent = (videoEl.currentTime / videoEl.duration) * 100;
-            progressFilled.style.width = `${percent}%`;
-        }
-    });
-    
-    videoEl.addEventListener('play', () => {
-        card.classList.add('playing');
-        const playIcon = card.querySelector('.play-icon');
-        const pauseIcon = card.querySelector('.pause-icon');
-        if (playIcon) playIcon.style.display = 'none';
-        if (pauseIcon) pauseIcon.style.display = 'block';
-    });
-    
-    videoEl.addEventListener('pause', () => {
-        card.classList.remove('playing');
-        const playIcon = card.querySelector('.play-icon');
-        const pauseIcon = card.querySelector('.pause-icon');
-        if (playIcon) playIcon.style.display = 'block';
-        if (pauseIcon) pauseIcon.style.display = 'none';
-    });
-    
-    return card;
-}
 
-// Toggle fullscreen for a video card
-function toggleFullscreen(card) {
-    const videoEl = card.querySelector('video');
-    
-    if (document.fullscreenElement) {
-        document.exitFullscreen();
-    } else if (videoEl.requestFullscreen) {
-        videoEl.requestFullscreen();
-    } else if (videoEl.webkitRequestFullscreen) {
-        videoEl.webkitRequestFullscreen();
-    } else if (videoEl.msRequestFullscreen) {
-        videoEl.msRequestFullscreen();
+        // Sort by order ascending
+        const sorted = [...result.data].sort((a, b) => (a.order || 999) - (b.order || 999));
+
+        // Normalize
+        videos.length = 0;
+        sorted.forEach(v => {
+            videos.push({
+                youtubeId: v.youtubeVideoId,
+                title: v.titleEn,
+                titleFr: v.titleFr,
+                order: v.order,
+                thumbnail: `https://img.youtube.com/vi/${v.youtubeVideoId}/hqdefault.jpg`
+            });
+        });
+
+        console.log('✅ Videos ready:', videos.map(v => `order ${v.order}: ${v.title}`));
+        buildVideoSection();
+    } catch (err) {
+        console.error('❌ Error fetching videos:', err);
     }
 }
 
-function handleCardClick(card, index) {
-    // If clicking on a non-active card, navigate to it
-    if (index !== currentVideoIndex) {
-        navigateTo(index);
-        return;
+function buildVideoSection() {
+    const wrapper = document.querySelector('.videoSwiper .swiper-wrapper');
+    const titleEl = document.querySelector('.current-video-title');
+
+    if (!wrapper) return;
+    if (videos.length === 0) return;
+
+    // Reset DOM and swiper
+    wrapper.innerHTML = '';
+    if (videoSwiper) {
+        videoSwiper.destroy(true, true);
+        videoSwiper = null;
     }
-    
-    // If clicking on active card, toggle play/pause
-    const videoEl = card.querySelector('video');
-    
-    if (isPlaying && currentPlayingVideo === videoEl) {
-        stopVideo(card);
-    } else {
-        playVideo(card);
-    }
+
+    // Slides
+    videos.forEach((video, index) => {
+        const title = currentLanguage === 'fr' ? video.titleFr : video.title;
+        const slide = document.createElement('div');
+        slide.className = 'swiper-slide';
+        slide.dataset.index = index;
+        slide.dataset.order = video.order;
+        slide.innerHTML = `
+            <div class="video-card-swiper">
+                <div class="video-player-wrapper">
+                    <iframe
+                        class="video-iframe"
+                        src="https://www.youtube.com/embed/${video.youtubeId}?rel=0&modestbranding=1&playsinline=1"
+                        title="${title}"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        allowfullscreen
+                        loading="lazy"
+                    ></iframe>
+                </div>
+                <div class="video-card-title">${title}</div>
+            </div>
+        `;
+        wrapper.appendChild(slide);
+    });
+
+    // Swiper init (force slide 0)
+    videoSwiper = new Swiper('.videoSwiper', {
+        effect: 'coverflow',
+        grabCursor: true,
+        centeredSlides: true,
+        slidesPerView: 'auto',
+        initialSlide: 0,
+        loop: false,
+        speed: 450,
+        coverflowEffect: {
+            rotate: 50,
+            stretch: 0,
+            depth: 100,
+            modifier: 1,
+            slideShadows: true,
+        },
+        navigation: {
+            nextEl: '.swiper-button-next',
+            prevEl: '.swiper-button-prev',
+        },
+        pagination: {
+            el: '.swiper-pagination',
+            clickable: true,
+            dynamicBullets: true,
+        },
+        keyboard: { enabled: true },
+        on: {
+            init: function () {
+                this.slideTo(0, 0, false);
+                videoCurrentIndex = 0;
+                updateVideoTitle(titleEl, 0);
+                console.log('✅ Video swiper initialized at slide 0');
+            },
+            slideChange: function () {
+                videoCurrentIndex = this.realIndex;
+                updateVideoTitle(titleEl, videoCurrentIndex);
+                console.log(`🔄 Now at index ${videoCurrentIndex} (order ${videos[videoCurrentIndex].order})`);
+            },
+        },
+    });
 }
 
-function playVideo(card) {
-    // Stop any currently playing video
-    if (currentPlayingVideo && currentPlayingVideo !== card.querySelector('video')) {
-        const currentCard = currentPlayingVideo.closest('.video-card');
-        stopVideo(currentCard);
-    }
-    
-    const videoEl = card.querySelector('video');
-    
-    // Unmute when user interacts
-    videoEl.muted = false;
-    
-    videoEl.play().then(() => {
-        card.classList.add('playing');
-        isPlaying = true;
-        currentPlayingVideo = videoEl;
+function updateVideoTitle(titleEl, idx) {
+    if (!titleEl || !videos[idx]) return;
+    const video = videos[idx];
+    const title = currentLanguage === 'fr' ? video.titleFr : video.title;
+    titleEl.textContent = title;
+}
+
+// ===================================
+// API INTEGRATION
+// ===================================
+
+// Fetch and update statistics
+async function fetchStatistics() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/content/stats`);
+        if (!response.ok) throw new Error('Failed to fetch statistics');
         
-        // Hide the center play overlay
-        const overlay = card.querySelector('.card-play-overlay');
-        if (overlay) overlay.style.opacity = '0';
-    }).catch(err => {
-        console.log('Video play failed:', err);
-        // Try playing muted if autoplay blocked
-        videoEl.muted = true;
-        videoEl.play().catch(() => {});
-    });
-}
-
-function pauseVideo(card) {
-    const videoEl = card.querySelector('video');
-    videoEl.pause();
-    isPlaying = false;
-    
-    // Show the center play overlay
-    const overlay = card.querySelector('.card-play-overlay');
-    if (overlay) overlay.style.opacity = '1';
-}
-
-function stopVideo(card) {
-    const videoEl = card.querySelector('video');
-    
-    videoEl.pause();
-    // Don't reset to 0 - keep current frame visible
-    card.classList.remove('playing');
-    isPlaying = false;
-    currentPlayingVideo = null;
-    
-    // Show the center play overlay
-    const overlay = card.querySelector('.card-play-overlay');
-    if (overlay) overlay.style.opacity = '1';
-}
-
-function navigateTo(index) {
-    // Stop current video if playing
-    const currentCard = document.querySelector('.video-card.active');
-    if (currentCard) {
-        stopVideo(currentCard);
-    }
-    
-    // Clamp index within bounds
-    const newIndex = Math.max(0, Math.min(index, videos.length - 1));
-    
-    if (newIndex === currentVideoIndex) return;
-    
-    currentVideoIndex = newIndex;
-    updateCoverflow();
-    
-    // Auto-play the new active video after a short delay for transition
-    setTimeout(() => {
-        const newActiveCard = document.querySelector('.video-card.active');
-        if (newActiveCard) {
-            playVideo(newActiveCard);
+        const result = await response.json();
+        if (result.success && result.data) {
+            const stats = result.data;
+            
+            // Update stat numbers in hero section
+            const statNumbers = document.querySelectorAll('.stat-number');
+            if (statNumbers.length >= 3) {
+                statNumbers[0].textContent = `${stats.internationalCongress}+`;
+                statNumbers[1].textContent = `${stats.symposium}+`;
+                statNumbers[2].textContent = `${stats.satisfiedCompanies}+`;
+            }
         }
-    }, 300);
-}
-
-function updateCoverflow() {
-    const track = document.querySelector('.coverflow-track');
-    const cards = document.querySelectorAll('.video-card');
-    const videoTitleEl = document.querySelector('.current-video-title');
-    
-    if (!track || cards.length === 0) return;
-    
-    // Calculate the offset to center the active card
-    const cardWidth = 680; // Base card width
-    const gap = 30; // Gap between cards
-    const offset = currentVideoIndex * (cardWidth + gap);
-    
-    // Shift the track to center the active video
-    track.style.transform = `translateX(-${offset}px)`;
-    
-    // Update active states on cards
-    cards.forEach((card, index) => {
-        card.classList.toggle('active', index === currentVideoIndex);
-    });
-    
-    // Update title
-    if (videoTitleEl && videos[currentVideoIndex]) {
-        const video = videos[currentVideoIndex];
-        videoTitleEl.textContent = currentLanguage === 'fr' ? video.titleFr : video.title;
-    }
-    
-    // Update navigation button states
-    const prevBtn = document.querySelector('.video-nav-prev');
-    const nextBtn = document.querySelector('.video-nav-next');
-    
-    if (prevBtn) {
-        prevBtn.style.opacity = currentVideoIndex === 0 ? '0.3' : '1';
-        prevBtn.style.pointerEvents = currentVideoIndex === 0 ? 'none' : 'auto';
-    }
-    
-    if (nextBtn) {
-        nextBtn.style.opacity = currentVideoIndex === videos.length - 1 ? '0.3' : '1';
-        nextBtn.style.pointerEvents = currentVideoIndex === videos.length - 1 ? 'none' : 'auto';
+    } catch (error) {
+        console.error('Error fetching statistics:', error);
+        // Keep default values if fetch fails
     }
 }
 
-// Update video titles when language changes
-function updateVideoTitles() {
-    const cards = document.querySelectorAll('.video-card');
+// Fetch partner logos from API
+async function fetchPartners() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/content/partners`);
+        if (!response.ok) throw new Error('Failed to fetch partners');
+        
+        const result = await response.json();
+        if (result.success && result.data && result.data.length > 0) {
+            // Store partners data globally
+            partnersData = result.data;
+            
+            // Reinitialize infinite scroll with new partners
+            initializeInfiniteScroll();
+            
+            console.log(`✅ Loaded ${partnersData.length} partners from API`);
+        }
+    } catch (error) {
+        console.error('Error fetching partners:', error);
+        // Keep fallback logos if fetch fails
+        console.log('⚠️ Using fallback partner logos');
+    }
+}
+
+// Submit contact form
+async function submitContactForm(formData) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/contact`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        });
+        
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error('Error submitting contact form:', error);
+        throw error;
+    }
+}
+
+// Initialize contact form
+function initializeContactForm() {
+    const form = document.querySelector('.contact-form');
+    if (!form) return;
     
-    cards.forEach((card, index) => {
-        const titleEl = card.querySelector('.card-title');
-        if (titleEl && videos[index]) {
-            titleEl.textContent = currentLanguage === 'fr' ? videos[index].titleFr : videos[index].title;
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const submitBtn = form.querySelector('.submit-btn');
+        const originalText = submitBtn.querySelector('span').textContent;
+        
+        // Get form values
+        const fullName = form.querySelector('#name').value.trim();
+        const [firstName, ...lastNameParts] = fullName.split(' ');
+        const lastName = lastNameParts.join(' ') || firstName;
+        
+        const formData = {
+            firstName: firstName,
+            lastName: lastName,
+            email: form.querySelector('#email').value.trim(),
+            phone: form.querySelector('#phone').value.trim() || undefined,
+            companyName: form.querySelector('#company').value.trim() || undefined,
+            subject: form.querySelector('#subject').value.trim(),
+            message: form.querySelector('#message').value.trim(),
+            language: currentLanguage
+        };
+        
+        // Disable button and show loading
+        submitBtn.disabled = true;
+        submitBtn.querySelector('span').textContent = currentLanguage === 'fr' ? 'Envoi en cours...' : 'Sending...';
+        
+        try {
+            const result = await submitContactForm(formData);
+            
+            if (result.success) {
+                // Success message
+                submitBtn.querySelector('span').textContent = currentLanguage === 'fr' ? '✓ Message envoyé!' : '✓ Message sent!';
+                submitBtn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+                
+                // Reset form after 2 seconds
+                setTimeout(() => {
+                    form.reset();
+                    submitBtn.disabled = false;
+                    submitBtn.querySelector('span').textContent = originalText;
+                    submitBtn.style.background = '';
+                }, 2000);
+            } else {
+                throw new Error(result.message || 'Failed to send message');
+            }
+        } catch (error) {
+            // Error message
+            submitBtn.querySelector('span').textContent = currentLanguage === 'fr' ? '✗ Erreur - Réessayez' : '✗ Error - Try again';
+            submitBtn.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
+            
+            setTimeout(() => {
+                submitBtn.disabled = false;
+                submitBtn.querySelector('span').textContent = originalText;
+                submitBtn.style.background = '';
+            }, 3000);
+            
+            console.error('Contact form error:', error);
         }
     });
-    
-    // Update current title
-    const videoTitleEl = document.querySelector('.current-video-title');
-    if (videoTitleEl && videos[currentVideoIndex]) {
-        const video = videos[currentVideoIndex];
-        videoTitleEl.textContent = currentLanguage === 'fr' ? video.titleFr : video.title;
-    }
-}
-
-function formatTime(seconds) {
-    if (isNaN(seconds)) return '0:00';
-    
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
 // ===================================
 // INITIALIZE APP
 // ===================================
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     // Preload images first
     preloadImages();
     
     // Initialize all components
     initializeLanguageSwitcher();
-    initializeInfiniteScroll();
     initializeScrollAnimations();
     initializeServiceCards();
     initializeSmoothScroll();
     initializeScrollSpy();
     initializeZelijScroll();
-    initializeCoverflow();
+    initializeContactForm();
+    
+    // Initialize infinite scroll with fallback logos first
+    initializeInfiniteScroll();
+    
+    // Fetch data from API (will update partners if available)
+    await Promise.all([
+        fetchStatistics(),
+        fetchVideos(),
+        fetchPartners()
+    ]);
     
     console.log('✨ Makeplus Portfolio initialized');
 });
@@ -794,9 +547,4 @@ document.addEventListener('visibilitychange', () => {
         }
     });
     
-    // Pause video when tab is hidden
-    if (document.hidden && currentPlayingVideo) {
-        const currentCard = currentPlayingVideo.closest('.video-card');
-        if (currentCard) stopVideo(currentCard);
-    }
 });

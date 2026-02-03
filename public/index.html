@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Makeplus - Solutions Marketing & Événementiel">
     <title>Makeplus - Plus qu'un partenaire</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
     <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body>
@@ -23,6 +22,12 @@
                 <a href="#contact" class="nav-link" data-fr="Contact" data-en="Contact">Contact</a>
             </div>
             <div class="nav-right">
+                <!-- Mobile Menu Toggle -->
+                <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Toggle menu">
+                    <span class="hamburger-line"></span>
+                    <span class="hamburger-line"></span>
+                    <span class="hamburger-line"></span>
+                </button>
                 <div class="language-switcher">
                     <button class="lang-btn active" data-lang="fr">FR</button>
                     <span class="lang-divider">|</span>
@@ -34,6 +39,15 @@
 
     <!-- Hero Section with Logo Only -->
     <section id="home" class="hero-section">
+        <!-- Video Background -->
+        <div class="video-background">
+            <video autoplay muted loop playsinline>
+                <source src="/assets/videos/makesplus_background.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+            <div class="video-overlay"></div>
+        </div>
+        
         <!-- Plus qu'un partenaire - Top Left -->
         <div class="hero-tagline">
             <span class="tagline-normal" data-fr="Plus qu'un" data-en="More than a">Plus qu'un</span>
@@ -98,11 +112,32 @@
 
     <!-- Video Showcase Section -->
     <section id="videos" class="video-section">
-        <div class="video-showcase">
-            <div class="video-grid" id="video-grid">
-                <!-- Videos will be populated by JavaScript -->
+        <div class="video-carousel-container">
+            <!-- Navigation Arrows -->
+            <button class="video-nav video-nav-prev" id="video-prev" aria-label="Previous video">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+            </button>
+            
+            <div class="video-carousel-wrapper">
+                <div class="video-carousel-track" id="video-track">
+                    <!-- Videos will be populated by JavaScript -->
+                </div>
             </div>
+            
+            <button class="video-nav video-nav-next" id="video-next" aria-label="Next video">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </button>
         </div>
+        
+        <!-- Pagination Dots -->
+        <div class="video-pagination" id="video-pagination"></div>
+        
+        <!-- Current Video Title -->
+        <div class="video-current-title" id="video-current-title"></div>
     </section>
 
     <!-- Partners Logo Section -->
@@ -245,7 +280,6 @@
         </div>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-    <script src="/js/main.js"></script>
+    <script src="/js/main.js?v=20260202e"></script>
 </body>
 </html>

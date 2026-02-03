@@ -4,19 +4,9 @@
   "buildCommand": null,
   "outputDirectory": "public",
   "framework": null,
-  "routes": [
-    {
-      "src": "/assets/videos/(.*)",
-      "dest": "/assets/videos/$1"
-    },
-    {
-      "src": "/(.*\\.(css|js|png|jpg|jpeg|gif|svg|ico|webm|mp4|woff|woff2|ttf|otf))",
-      "dest": "/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/$1" },
+    { "source": "/((?!.*\\.).*)", "destination": "/index.html" }
   ],
   "headers": [
     {

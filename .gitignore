@@ -23,3 +23,5 @@ TODO.pdf
 
 # Upload folder for backend
 uploads/
+.vercel
+.env*.local

@@ -1,0 +1,87 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  /* Dark Theme Colors matching portfolio */
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #111111;
+  --accent-magenta: #872c7a;
+  --accent-magenta-light: #b83db8;
+  --accent-purple: #9333ea;
+  --accent-pink: #d946ef;
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --text-muted: rgba(255, 255, 255, 0.5);
+  
+  /* Glassmorphism */
+  --glass-bg: rgba(255, 255, 255, 0.05);
+  --glass-bg-hover: rgba(255, 255, 255, 0.12);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-border-hover: rgba(255, 255, 255, 0.2);
+  --glass-blur: 20px;
+
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  font-weight: 500;
+  color: var(--accent-magenta-light);
+  text-decoration: inherit;
+}
+a:hover {
+  color: var(--accent-pink);
+}
+
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+  background-image: 
+    radial-gradient(ellipse 60% 40% at 50% 50%, rgba(135, 44, 122, 0.25) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 30% at 50% 60%, rgba(184, 61, 184, 0.15) 0%, transparent 50%);
+  background-attachment: fixed;
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+  color: var(--text-primary);
+}
+
+button {
+  border-radius: 8px;
+  border: 1px solid var(--glass-border);
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+button:hover {
+  background: var(--glass-bg-hover);
+  border-color: var(--accent-magenta-light);
+}
+button:focus,
+button:focus-visible {
+  outline: 2px solid var(--accent-magenta);
+  outline-offset: 2px;
+}

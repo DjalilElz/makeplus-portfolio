@@ -1,0 +1,15 @@
+# Cloudflare Pages deployment config
+include = [
+  "*.html",
+  "*.css",
+  "*.js",
+  "assets/**",
+  "!assets/videos/*.mp4"
+]
+
+# Exclude large video files
+exclude = [
+  "assets/videos/*.mp4",
+  "assets/videos/*.webm",
+  "assets/videos/*.mov"
+]

@@ -276,15 +276,87 @@ async function fetchVideos() {
     }
 }
 
-// Build horizontal video grid
+// Current video index for carousel
+let currentVideoIndex = 0;
+// YouTube IFrame API players
+let youtubePlayers = [];
+let isYouTubeAPIReady = false;
+
+// Load YouTube IFrame API
+function loadYouTubeAPI() {
+    if (window.YT) {
+        onYouTubeIframeAPIReady();
+        return;
+    }
+    
+    const tag = document.createElement('script');
+    tag.src = 'https://www.youtube.com/iframe_api';
+    const firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+}
+
+// Called automatically when YouTube API is ready
+window.onYouTubeIframeAPIReady = function() {
+    console.log('📺 YouTube API ready');
+    isYouTubeAPIReady = true;
+    if (videos.length > 0) {
+        initializeYouTubePlayers();
+    }
+};
+
+// Initialize YouTube players for all videos
+function initializeYouTubePlayers() {
+    if (!isYouTubeAPIReady) return;
+    
+    console.log('🎬 Initializing YouTube players...');
+    youtubePlayers = [];
+    
+    videos.forEach((video, index) => {
+        const playerId = `youtube-player-${index}`;
+        const playerEl = document.getElementById(playerId);
+        
+        if (playerEl) {
+            try {
+                const player = new YT.Player(playerId, {
+                    videoId: video.youtubeId,
+                    playerVars: {
+                        autoplay: index === 0 ? 1 : 0,
+                        mute: 1,
+                        rel: 0,
+                        modestbranding: 1,
+                        controls: 1,
+                        fs: 1,
+                        playsinline: 1
+                    },
+                    events: {
+                        'onReady': (event) => {
+                            if (index === 0) {
+                                event.target.playVideo();
+                            }
+                        }
+                    }
+                });
+                youtubePlayers[index] = player;
+            } catch (err) {
+                console.error(`Error creating player ${index}:`, err);
+            }
+        }
+    });
+}
+
+// Build coverflow-style video carousel
 function buildVideoGrid() {
-    console.log('🔧 Building video grid...');
+    console.log('🔧 Building video carousel...');
     
-    const grid = document.getElementById('video-grid');
-    console.log('📍 Grid element:', grid);
+    const track = document.getElementById('video-track');
+    const pagination = document.getElementById('video-pagination');
+    const titleDisplay = document.getElementById('video-current-title');
     
-    if (!grid) {
-        console.error('❌ Video grid container not found');
+    console.log('📍 Track element:', track);
+    console.log('📍 Pagination element:', pagination);
+    
+    if (!track) {
+        console.error('❌ Video track container not found');
         return;
     }
     
@@ -293,10 +365,11 @@ function buildVideoGrid() {
         return;
     }
 
-    console.log('📹 Creating cards for', videos.length, 'videos');
+    console.log('📹 Creating carousel for', videos.length, 'videos');
 
     // Clear existing content
-    grid.innerHTML = '';
+    track.innerHTML = '';
+    if (pagination) pagination.innerHTML = '';
 
     // Create video cards
     videos.forEach((video, index) => {
@@ -311,23 +384,134 @@ function buildVideoGrid() {
         card.innerHTML = `
             <div class="video-card-inner">
                 <div class="video-wrapper">
-                    <iframe 
-                        src="https://www.youtube.com/embed/${video.youtubeId}?rel=0&modestbranding=1"
-                        title="${title}"
-                        frameborder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                        allowfullscreen
-                    ></iframe>
+                    <div id="youtube-player-${index}" class="youtube-player"></div>
                 </div>
-                <div class="video-title">${title}</div>
+                <div class="video-card-title">${title}</div>
             </div>
         `;
         
-        grid.appendChild(card);
+        // Click on card to go to that video
+        card.addEventListener('click', () => {
+            if (index !== currentVideoIndex) {
+                goToVideo(index);
+            }
+        });
+        
+        track.appendChild(card);
+        
+        // Create pagination dot
+        if (pagination) {
+            const dot = document.createElement('button');
+            dot.className = 'video-dot';
+            dot.dataset.index = index;
+            dot.setAttribute('aria-label', `Go to video ${index + 1}`);
+            dot.addEventListener('click', () => goToVideo(index));
+            pagination.appendChild(dot);
+        }
     });
 
-    console.log('✅ Video grid built with ' + videos.length + ' videos');
-    console.log('📍 Grid children count:', grid.children.length);
+    // Set up navigation buttons
+    const prevBtn = document.getElementById('video-prev');
+    const nextBtn = document.getElementById('video-next');
+    
+    if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+            goToVideo(currentVideoIndex - 1);
+        });
+    }
+    
+    if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+            goToVideo(currentVideoIndex + 1);
+        });
+    }
+
+    // Initialize first video as active
+    currentVideoIndex = 0;
+    updateCarouselState();
+
+    console.log('✅ Video carousel built with ' + videos.length + ' videos');
+    
+    // Load YouTube API and initialize players
+    loadYouTubeAPI();
+}
+
+// Navigate to specific video
+function goToVideo(index) {
+    // Wrap around for infinite loop effect
+    if (index < 0) {
+        index = videos.length - 1;
+    } else if (index >= videos.length) {
+        index = 0;
+    }
+    
+    // Pause current video
+    if (youtubePlayers[currentVideoIndex] && youtubePlayers[currentVideoIndex].pauseVideo) {
+        try {
+            youtubePlayers[currentVideoIndex].pauseVideo();
+        } catch (err) {
+            console.log('Could not pause video:', err);
+        }
+    }
+    
+    currentVideoIndex = index;
+    updateCarouselState();
+    
+    // Play new video (unmute after first autoplay)
+    if (youtubePlayers[currentVideoIndex] && youtubePlayers[currentVideoIndex].playVideo) {
+        try {
+            youtubePlayers[currentVideoIndex].unMute();
+            youtubePlayers[currentVideoIndex].playVideo();
+        } catch (err) {
+            console.log('Could not play video:', err);
+        }
+    }
+}
+
+// Update carousel visual state
+function updateCarouselState() {
+    const cards = document.querySelectorAll('.video-card');
+    const dots = document.querySelectorAll('.video-dot');
+    const titleDisplay = document.getElementById('video-current-title');
+    const total = videos.length;
+    
+    cards.forEach((card, index) => {
+        // Remove all position classes
+        card.classList.remove('active', 'prev', 'next', 'far-prev', 'far-next', 'hidden');
+        
+        // Calculate position relative to current
+        let diff = index - currentVideoIndex;
+        
+        // Handle wrap-around for infinite loop
+        if (diff > total / 2) diff -= total;
+        if (diff < -total / 2) diff += total;
+        
+        // Apply appropriate class based on position
+        if (diff === 0) {
+            card.classList.add('active');
+        } else if (diff === -1) {
+            card.classList.add('prev');
+        } else if (diff === 1) {
+            card.classList.add('next');
+        } else if (diff === -2) {
+            card.classList.add('far-prev');
+        } else if (diff === 2) {
+            card.classList.add('far-next');
+        } else {
+            card.classList.add('hidden');
+        }
+    });
+    
+    // Update pagination dots
+    dots.forEach((dot, index) => {
+        dot.classList.toggle('active', index === currentVideoIndex);
+    });
+    
+    // Update title display
+    if (titleDisplay && videos[currentVideoIndex]) {
+        const video = videos[currentVideoIndex];
+        titleDisplay.textContent = currentLanguage === 'fr' ? video.titleFr : video.title;
+    }
 }
 
 // Update video titles when language changes
@@ -335,17 +519,23 @@ function updateVideoDisplay() {
     if (videos.length === 0) return;
     
     const cards = document.querySelectorAll('.video-card');
+    const titleDisplay = document.getElementById('video-current-title');
+    
     cards.forEach((card, index) => {
         const video = videos[index];
         if (video) {
-            const titleEl = card.querySelector('.video-title');
-            const iframe = card.querySelector('iframe');
+            const titleEl = card.querySelector('.video-card-title');
             const title = currentLanguage === 'fr' ? video.titleFr : video.title;
             
             if (titleEl) titleEl.textContent = title;
-            if (iframe) iframe.title = title;
         }
     });
+    
+    // Update main title display
+    if (titleDisplay && videos[currentVideoIndex]) {
+        const video = videos[currentVideoIndex];
+        titleDisplay.textContent = currentLanguage === 'fr' ? video.titleFr : video.title;
+    }
 }
 
 // ===================================
@@ -484,6 +674,52 @@ function initializeContactForm() {
 }
 
 // ===================================
+// MOBILE MENU
+// ===================================
+function initializeMobileMenu() {
+    const menuToggle = document.getElementById('mobile-menu-toggle');
+    const navLinks = document.querySelector('.nav-links');
+    
+    if (!menuToggle || !navLinks) return;
+    
+    // Toggle menu on hamburger click
+    menuToggle.addEventListener('click', () => {
+        menuToggle.classList.toggle('active');
+        navLinks.classList.toggle('active');
+        document.body.style.overflow = navLinks.classList.contains('active') ? 'hidden' : '';
+    });
+    
+    // Close menu when clicking a nav link
+    navLinks.querySelectorAll('.nav-link').forEach(link => {
+        link.addEventListener('click', () => {
+            menuToggle.classList.remove('active');
+            navLinks.classList.remove('active');
+            document.body.style.overflow = '';
+        });
+    });
+    
+    // Close menu on escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && navLinks.classList.contains('active')) {
+            menuToggle.classList.remove('active');
+            navLinks.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    });
+    
+    // Close menu when clicking outside
+    document.addEventListener('click', (e) => {
+        if (navLinks.classList.contains('active') && 
+            !navLinks.contains(e.target) && 
+            !menuToggle.contains(e.target)) {
+            menuToggle.classList.remove('active');
+            navLinks.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    });
+}
+
+// ===================================
 // INITIALIZE APP
 // ===================================
 document.addEventListener('DOMContentLoaded', async () => {
@@ -491,6 +727,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     preloadImages();
     
     // Initialize all components
+    initializeMobileMenu();
     initializeLanguageSwitcher();
     initializeScrollAnimations();
     initializeServiceCards();

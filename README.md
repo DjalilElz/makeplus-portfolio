@@ -1,272 +1,153 @@
-# 🚀 Makeplus Portfolio Website
+# Makeplus Portfolio
 
-A modern, high-performance marketing portfolio website built with Node.js featuring advanced UI elements including iOS-style glassmorphism effects and infinite horizontal scrolling animations.
-
-## ✨ Features
-
-- **🎨 Advanced UI Design**
-  - iOS-style glassmorphism effects
-  - Smooth parallax scrolling
-  - Animated gradient backgrounds
-  - Custom glass cards with backdrop blur
-
-- **♾️ Infinite Horizontal Scroll**
-  - Seamless client logo carousel
-  - 29 client logos automatically animated
-  - Hover effects with color restoration
-
-- **📱 Fully Responsive**
-  - Mobile-first design approach
-  - Adaptive layouts for all screen sizes
-  - Touch-friendly interactions
-
-- **⚡ Performance Optimized**
-  - Lazy loading images
-  - Debounced scroll events
-  - CSS hardware acceleration
-  - Optimized animations
-
-## 🛠️ Tech Stack
-
-### Backend
-- **Node.js** - JavaScript runtime
-- **Express.js** - Web application framework
-- **CORS** - Cross-origin resource sharing
-- **dotenv** - Environment variable management
-
-### Frontend
-- **Vanilla JavaScript** - No framework overhead
-- **Modern CSS3** - Glassmorphism, animations, gradients
-- **HTML5** - Semantic markup
+Official portfolio website for Makeplus - Professional event management and video production company.
 
 ## 📁 Project Structure
 
 ```
 makeplus-portfolio/
-├── public/                      # Static files served to clients
-│   ├── assets/
-│   │   ├── fonts/              # Extracted font files
-│   │   ├── images/             # Background images
-│   │   └── svg/                # Logo and icon files
-│   ├── css/
-│   │   └── styles.css          # Main stylesheet with glassmorphism
-│   ├── js/
-│   │   └── main.js             # Client-side JavaScript
-│   └── index.html              # Main HTML file
-├── ui_components/              # Original design assets
-│   ├── Backgrounds/            # Background images
-│   ├── Font/                   # Font files (zipped)
-│   └── Les SVG/                # SVG logos and icons
-├── server.js                   # Express server
-├── package.json                # Dependencies
-├── .env                        # Environment variables
-└── README.md                   # This file
+├── public/                          → Main portfolio website (Frontend)
+├── admin-dashboard/                 → Admin control panel (React)
+└── [documentation files]
 ```
 
-## 🚀 Getting Started
+## 🌐 Live URLs
 
-### Prerequisites
+- **Website**: https://public-five-sepia-99.vercel.app
+- **Admin Dashboard**: https://07d27a3f.makeplus-admin.pages.dev
+- **Backend API**: https://makeplus-portfolio-backend.vercel.app
 
-Make sure you have the following installed:
-- **Node.js** (v16 or higher) - [Download here](https://nodejs.org/)
-- **npm** (comes with Node.js)
+## 🚀 Tech Stack
 
-Check your versions:
-```powershell
-node -v
-npm -v
+**Frontend (public/):**
+- HTML5, CSS3, JavaScript (Vanilla)
+- Vercel (Hosting)
+- YouTube embeds for videos
+
+**Admin Dashboard (admin-dashboard/):**
+- React 18 + Vite
+- Cloudflare Pages (Hosting)
+- JWT Authentication
+
+**Backend (External):**
+- Node.js + Express
+- MongoDB Atlas
+- Gmail SMTP
+- YouTube API integration
+
+## 📚 Documentation
+
+- **BACKEND_IMPLEMENTATION_INSTRUCTIONS.md** - Complete backend migration guide (For backend developer)
+- **YOUTUBE_SETUP_GUIDE.md** - How to add videos via YouTube (For you)
+- **ADMIN_USER_GUIDE.md** - Admin dashboard usage guide (For you)
+
+## 🔐 Admin Credentials
+
+- Email: elaziziabdeldjalil@gmail.com
+- Password: Admin123!Change
+- Dashboard: https://07d27a3f.makeplus-admin.pages.dev
+
+## 🛠️ Local Development
+
+### Frontend
+```bash
+cd public
+# Open index.html in browser or use live server
 ```
 
-### Installation Steps
-
-1. **Navigate to the project directory:**
-   ```powershell
-   cd 'e:\makeplus portfolio'
-   ```
-
-2. **Install dependencies:**
-   ```powershell
-   npm install
-   ```
-   This will install:
-   - express
-   - cors
-   - dotenv
-   - nodemon (dev dependency)
-
-3. **Start the development server:**
-   ```powershell
-   npm run dev
-   ```
-   Or for production:
-   ```powershell
-   npm start
-   ```
-
-4. **Open your browser:**
-   Navigate to: `http://localhost:3000`
-
-## 🎯 Available Scripts
-
-- `npm start` - Start the production server
-- `npm run dev` - Start development server with auto-reload (nodemon)
-
-## 🔧 Configuration
-
-### Environment Variables
-
-Edit the `.env` file to configure:
-
-```env
-PORT=3000                # Server port
-NODE_ENV=development     # Environment mode
+### Admin Dashboard
+```bash
+cd admin-dashboard
+npm install
+npm run dev
 ```
 
-### Customization
+## 📦 Deployment
 
-#### Colors
-Modify CSS variables in `public/css/styles.css`:
-```css
-:root {
-    --primary-color: #6366f1;
-    --secondary-color: #8b5cf6;
-    --accent-color: #ec4899;
-}
-```
-
-#### Content
-Edit `public/index.html` to update:
-- Navigation links
-- Service descriptions
-- Contact form
-- Footer information
-
-#### Animations
-Adjust animation speeds in `public/css/styles.css`:
-```css
-@keyframes scroll {
-    /* Modify the 40s value for speed */
-    animation: scroll 40s linear infinite;
-}
-```
-
-## 🎨 Design Features Explained
-
-### Glassmorphism Effect
-The signature iOS-style glass effect is achieved using:
-- `backdrop-filter: blur(20px)`
-- Semi-transparent backgrounds
-- Subtle borders with opacity
-- Drop shadows for depth
-
-### Infinite Scroll Implementation
-1. Duplicates logo set for seamless loop
-2. CSS animation moves container left
-3. When first set finishes, animation resets
-4. Creates illusion of infinite content
-
-### Parallax Scrolling
-Background images move at different speeds than foreground content, creating depth perception.
-
-## 📱 Responsive Breakpoints
-
-- **Desktop**: 1400px+ (Full featured)
-- **Tablet**: 768px - 1399px (Adjusted layouts)
-- **Mobile**: < 768px (Simplified navigation, stacked layouts)
-
-## 🔌 API Endpoints
-
-The server includes basic API endpoints:
-
-- `GET /` - Serves the main website
-- `GET /api/health` - Health check endpoint
-- `GET /assets/ui-components/*` - Serves design assets
-
-## 🚀 Deployment
-
-### Heroku
-```powershell
-heroku create makeplus-portfolio
-git push heroku main
-```
-
-### Vercel
-```powershell
+### Frontend
+```bash
+cd public
 vercel --prod
 ```
 
-### Traditional Hosting
-1. Upload all files to server
-2. Run `npm install`
-3. Configure process manager (PM2):
-   ```bash
-   npm install -g pm2
-   pm2 start server.js --name makeplus
-   pm2 save
-   ```
-
-## 🔮 Future Enhancements
-
-- [ ] Add database integration (MongoDB/PostgreSQL)
-- [ ] Implement contact form email functionality
-- [ ] Add admin dashboard for content management
-- [ ] Integrate analytics (Google Analytics)
-- [ ] Add blog/news section
-- [ ] Implement dark/light theme toggle
-- [ ] Add multi-language support
-- [ ] Create case studies section
-- [ ] Add testimonials carousel
-- [ ] Implement real-time chat support
-
-## 📚 Additional Resources
-
-### Backend Framework
-- [Express.js Documentation](https://expressjs.com/)
-- [Node.js Best Practices](https://github.com/goldbergyoni/nodebestpractices)
-
-### Frontend Techniques
-- [CSS Glassmorphism Generator](https://css.glass/)
-- [MDN Web Animations API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Animations_API)
-
-## 🐛 Troubleshooting
-
-### Port Already in Use
-```powershell
-# Kill process on port 3000
-Get-Process -Id (Get-NetTCPConnection -LocalPort 3000).OwningProcess | Stop-Process
+### Admin Dashboard
+```bash
+cd admin-dashboard
+npm run build
+npx wrangler pages deploy dist --project-name=makeplus-admin
 ```
 
-### Dependencies Issues
-```powershell
-# Clear cache and reinstall
-Remove-Item -Recurse -Force node_modules
-npm cache clean --force
-npm install
-```
+## ⚡ Features
 
-### Images Not Loading
-- Verify file paths in HTML match actual file locations
-- Check browser console for 404 errors
-- Ensure `ui_components` folder exists
+- ✅ Bilingual (French/English)
+- ✅ YouTube video integration (unlimited storage)
+- ✅ Contact form with email notifications
+- ✅ Dynamic statistics from MongoDB
+- ✅ Partner logos management (base64)
+- ✅ Admin authentication (JWT)
+- ✅ Responsive design
+- ✅ Upload progress tracking
 
-## 📄 License
+## 📋 What's Next
 
-MIT License - Feel free to use this project for your portfolio or commercial purposes.
+### For Backend Developer:
+1. Read **BACKEND_IMPLEMENTATION_INSTRUCTIONS.md**
+2. Update Video model (YouTube URLs)
+3. Update Partner model (base64 storage)
+4. Add YouTube helpers utility
+5. Update routes/controllers
+6. Update CORS whitelist
+7. Deploy to Vercel
 
-## 🤝 Contributing
+### For You:
+1. Read **YOUTUBE_SETUP_GUIDE.md**
+2. Upload videos to YouTube (set to Unlisted)
+3. Login to admin dashboard
+4. Add videos using YouTube URLs
+5. Add partner logos
+6. Update statistics
 
-1. Fork the repository
-2. Create feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit changes (`git commit -m 'Add AmazingFeature'`)
-4. Push to branch (`git push origin feature/AmazingFeature`)
-5. Open Pull Request
+## 🗂️ Files Cleaned Up
 
-## 📞 Support
+**Removed:**
+- ❌ `backend/` folder (unused temporary backend)
+- ❌ `temp_videos/` folder
+- ❌ `ui_components/` folder (duplicate)
+- ❌ `server.js` (unused)
+- ❌ 15+ redundant documentation files
 
-For questions or support, please contact the development team or open an issue in the repository.
+**Kept:**
+- ✅ `public/` - Frontend website
+- ✅ `admin-dashboard/` - Admin panel
+- ✅ 3 essential documentation files
+- ✅ Configuration files (.env, vercel.json, etc.)
+
+## 💡 Key Changes
+
+**Before:**
+- File uploads (100MB limit)
+- Ephemeral storage (/tmp deleted after 12-24h)
+- Needed Vercel Blob ($$$)
+
+**After:**
+- YouTube URLs (unlimited storage)
+- Base64 partner logos (in MongoDB)
+- Free forever
+- Global CDN (YouTube)
+
+## 🆘 Support
+
+**If something breaks:**
+1. Check backend logs on Vercel
+2. Test CORS configuration
+3. Verify MongoDB connection
+4. Check admin dashboard console
+
+**Test URLs:**
+- Health check: https://makeplus-portfolio-backend.vercel.app/api/health
+- Stats: https://makeplus-portfolio-backend.vercel.app/api/content/stats
+- Videos: https://makeplus-portfolio-backend.vercel.app/api/content/videos
 
 ---
 
-**Built with ❤️ for Makeplus Marketing**
-
-*Last updated: January 2026*
+**Built with ❤️ by Makeplus**

@@ -41,17 +41,22 @@
     <section id="home" class="hero-section">
         <!-- Video Background -->
         <div class="video-background">
-            <video autoplay muted loop playsinline>
+            <video autoplay muted loop playsinline preload="auto" id="hero-video">
+                <source src="/assets/videos/makesplus_background_webm.webm" type="video/webm">
                 <source src="/assets/videos/makesplus_background.mp4" type="video/mp4">
                 Your browser does not support the video tag.
             </video>
             <div class="video-overlay"></div>
         </div>
         
-        <!-- Plus qu'un partenaire - Top Left -->
+        <!-- Plus qu'un partenaire - Middle Left Card -->
         <div class="hero-tagline">
-            <span class="tagline-normal" data-fr="Plus qu'un" data-en="More than a">Plus qu'un</span>
-            <span class="tagline-script" data-fr="partenaire" data-en="partner">partenaire</span>
+            <div class="tagline-card">
+                <div class="tagline-content">
+                    <span class="tagline-normal" data-fr="PLUS QU'UN" data-en="MORE THAN">PLUS QU'UN</span>
+                    <span class="tagline-script" data-fr="partenaire" data-en="partner">partenaire</span>
+                </div>
+            </div>
         </div>
         
         <!-- Stats Section - Right Side -->
@@ -67,6 +72,14 @@
             <div class="stat-item">
                 <div class="stat-number">28+</div>
                 <div class="stat-label" data-fr="Societé satisfait" data-en="Satisfied Companies">Societé satisfait</div>
+            </div>
+        </div>
+        
+        <!-- Speaker Image - Bottom Right -->
+        <div class="hero-speaker">
+            <div class="speaker-wrapper">
+                <img src="/assets/images/Background (Crop from the top).jpg" alt="Speaker" class="speaker-background">
+                <div class="speaker-overlay"></div>
             </div>
         </div>
         
@@ -279,6 +292,14 @@
             </div>
         </div>
     </footer>
+
+    <!-- Sticky Quote Button -->
+    <a href="#contact" class="sticky-quote-btn" data-fr="Demande de devis" data-en="Request a quote">
+        <span>Demande de devis</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+    </a>
 
     <script src="/js/main.js?v=20260202e"></script>
 </body>

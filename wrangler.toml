@@ -1,0 +1,14 @@
+name = "makeplus-portfolio"
+compatibility_date = "2026-02-01"
+
+[site]
+bucket = "./public"
+
+# Pages configuration
+pages_build_output_dir = "./public"
+
+# Optional: Add custom domains later
+# routes = [
+#   { pattern = "wemakeplus.com", custom_domain = true },
+#   { pattern = "www.wemakeplus.com", custom_domain = true }
+# ]

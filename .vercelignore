@@ -1,9 +1,3 @@
-# Large files
-*.mp4
-*.mov
-*.avi
-*.webm
-
 # Temp directories
 temp_videos/
 node_modules/
